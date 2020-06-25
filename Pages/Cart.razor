@@ -1,0 +1,76 @@
+﻿@page "/cart"
+
+@using ShoppingCartBlazor.Data
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject CartService CartService
+@inject CartItemService CartItemService
+
+@if (cart == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (cart.Products == null || cart.Products.Count() == 0)
+{
+    <p>You don't have items in your cart.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Item Name</th>
+                <th>Amount</th>
+                <th>Price</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in cart.Products)
+            {
+                <tr>
+                    <td>@item.Item.Name</td>
+                    <td>@item.Quantity</td>
+                    <td>@item.Item.Price</td>
+                    <td>
+                      <input type="button" value="Remove" @onclick="async() => await RemoveItem(item)" />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@functions {
+
+    private Task ItemAmountChanged(CartItem item) {
+        return Task.Run(async () => {
+            item = await CartItemService.Update(item);
+
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            cart = await CartService.Get(user.Identity.Name);
+        });
+    }
+
+    private Task RemoveItem(CartItem item) {
+        return Task.Run(async() => {
+          await CartItemService.Delete(item);
+          var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+          var user = authState.User;
+          cart = await CartService.Get(user.Identity.Name);
+        });
+    }
+}
+
+@code {
+    private ShoppingCartBlazor.Data.Cart cart;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        cart = await CartService.Get(user.Identity.Name);
+    }
+}

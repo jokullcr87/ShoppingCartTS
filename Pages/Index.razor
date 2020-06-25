@@ -1,0 +1,101 @@
+﻿@page "/"
+
+@using ShoppingCartBlazor.Data
+@using System.Linq
+@using System.Transactions
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ProductService ProductService
+@inject CartService CartService
+
+<NavLink class="nav-link" href="admin/products">Add New Products</NavLink>
+
+@if (products == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (products.Length == 0)
+{
+    <p><em>There are no available items right now...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Item Name</th>
+                <th>Price</th>
+                @if (identity.IsAuthenticated)
+                {
+                  <th></th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in products)
+            {
+                <tr>
+                    <td>@product.Name</td>
+                    <td>@product.Price</td>
+                    @if (identity.IsAuthenticated)
+                    {
+                      <td>
+                        <input type="button" value="Add" @onclick="(async() => await AddItemToCart(product))" />
+                      </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@functions {
+
+    private Task AddItemToCart(Product product) {
+        return Task.Run(async () => {
+          ShoppingCartBlazor.Data.Cart cart = await CartService.Get(identity.Name);
+          //using (var scope = new TransactionScope()) {
+            if (cart.Products == null)
+                cart.Products = new System.Collections.Generic.List<CartItem>();
+
+            var cartItem = cart.Products.SingleOrDefault(p => p.Item.ID == product.ID);
+            bool isNewItem = false;
+            Console.WriteLine("isNewItem:" + isNewItem);
+            if (isNewItem = (cartItem == null))
+                cartItem = new ShoppingCartBlazor.Data.CartItem() { Item = product };
+
+            if (await ProductService.HasAvailableItems(product))
+                cartItem.Quantity++;
+
+            if (isNewItem)
+              cart.Products.Add(cartItem);
+
+            try {
+              await CartService.Update(cart);
+            } catch {
+              cart.Products.Add(cartItem);
+              await CartService.Update(cart);
+            }
+          //}
+
+          this.products = (await ProductService.Get()).ToArray();
+        });
+    }
+
+}
+
+@code {
+    private Product[] products;
+    private System.Security.Principal.IIdentity identity = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = (await ProductService.Get()).ToArray();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        identity = user.Identity;
+    }
+}

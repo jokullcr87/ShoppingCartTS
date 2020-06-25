@@ -1,0 +1,54 @@
+@page "/admin/products"
+
+@using ShoppingCartBlazor.Data
+@using System.Linq
+@using System.Transactions
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ProductService ProductService
+
+@if (!String.IsNullOrEmpty(submissionMessage))
+{
+  <p><em>@submissionMessage</em></p>
+}
+
+<EditForm Model="@productModel" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+      <label for="name">Name:</label>
+      <InputText id="name" @bind-Value="productModel.Name" />
+    </div>
+    <div>
+      <label for="price">Price:</label>
+      <InputNumber id="price" @bind-Value="@productModel.Price" />
+    </div>
+    <div>
+      <label for="stock">Stock:</label>
+      <InputNumber id="stock" @bind-Value="productModel.Stock" />
+    </div>
+    <div>
+      <label for="listed">Is Listed:</label>
+      <InputCheckbox id="listed" @bind-Value="productModel.IsListed" />
+    </div>
+    <button type="submit">Add</button>
+</EditForm>
+
+@code {
+    private Product productModel = new Product();
+    private string submissionMessage;
+
+    private void HandleValidSubmit()
+    {
+        try {
+            ProductService.Insert(productModel);
+            submissionMessage = "Your item was successfully added.";
+
+            productModel = new Product();
+        }  catch {
+            submissionMessage = "An error ocurred while adding the product.";
+        }
+    }
+}

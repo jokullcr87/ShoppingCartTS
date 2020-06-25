@@ -1,0 +1,48 @@
+
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+﻿<div class="top-row pl-4 navbar navbar-dark">
+    <a class="navbar-brand" href="">ShoppingCartBlazor</a>
+    <button class="navbar-toggler" @onclick="ToggleNavMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <ul class="nav flex-column">
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-list" aria-hidden="true"></span> Home
+            </NavLink>
+        </li>
+@if (IsAuthenticated)
+{
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="cart">
+                <span class="oi oi-cart" aria-hidden="true"></span> Shopping Cart
+            </NavLink>
+        </li>
+}
+    </ul>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+    private bool IsAuthenticated = false;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        IsAuthenticated = user.Identity.IsAuthenticated;
+    }
+}
