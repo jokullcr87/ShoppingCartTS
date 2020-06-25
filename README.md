@@ -1,0 +1,2 @@
+# ShoppingCartTS
+Telescope sample
