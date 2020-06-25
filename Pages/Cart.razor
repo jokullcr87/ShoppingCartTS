@@ -46,8 +46,6 @@ else
 
     private Task ItemAmountChanged(CartItem item) {
         return Task.Run(async () => {
-            item = await CartItemService.Update(item);
-
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
             cart = await CartService.Get(user.Identity.Name);

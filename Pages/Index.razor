@@ -8,6 +8,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ProductService ProductService
 @inject CartService CartService
+@inject CartItemService CartItemService
 
 <NavLink class="nav-link" href="admin/products">Add New Products</NavLink>
 
@@ -61,22 +62,25 @@ else
 
             var cartItem = cart.Products.SingleOrDefault(p => p.Item.ID == product.ID);
             bool isNewItem = false;
-            Console.WriteLine("isNewItem:" + isNewItem);
+
             if (isNewItem = (cartItem == null))
                 cartItem = new ShoppingCartBlazor.Data.CartItem() { Item = product };
+
+            Console.WriteLine("isNewItem:" + isNewItem);
 
             if (await ProductService.HasAvailableItems(product))
                 cartItem.Quantity++;
 
-            if (isNewItem)
-              cart.Products.Add(cartItem);
+            //cartItem.OwnerCart = cart;
 
-            try {
-              await CartService.Update(cart);
-            } catch {
+            if (isNewItem) {
+              //cartItem = await CartItemService.Insert(cartItem);
               cart.Products.Add(cartItem);
-              await CartService.Update(cart);
+            } else {
+              //await CartItemService.Update(cartItem);
             }
+
+            await CartService.Update(cart);
           //}
 
           this.products = (await ProductService.Get()).ToArray();

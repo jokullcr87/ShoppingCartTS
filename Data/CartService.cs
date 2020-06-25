@@ -26,7 +26,6 @@ namespace ShoppingCartBlazor.Data
               var cart = mContext.Cart
                               .Include(c => c.Owner)
                               .Include(c => c.Products)
-                              .AsNoTracking()
                               .SingleOrDefault(p => p.Owner == user);
               if (cart == null) {
                 cart = new Cart();
@@ -48,7 +47,7 @@ namespace ShoppingCartBlazor.Data
 
         public Task Update(Cart cart) {
             return Task.Run(() => {
-              var oldCart = mContext.Cart.AsNoTracking().Single(c => c.Id == cart.Id);
+              var oldCart = mContext.Cart.Single(c => c.Id == cart.Id);
               oldCart.Products = cart.Products;
 
               mContext.SaveChanges();

@@ -12,6 +12,7 @@ namespace ShoppingCartBlazor.Data {
     public int Id { get; protected set; }
     public Product Item { get; set; }
     public int Quantity { get; set; } = 0;
+    //public Cart OwnerCart {get;set;}
   }
 
 }
